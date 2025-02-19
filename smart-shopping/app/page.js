@@ -1,6 +1,9 @@
 import { SearchProducts } from "@/components/search-products"
 import { ProductGrid } from "@/components/product-grid"
 import { CartSheet } from "@/components/cart-sheet"
+import { QRScanner } from "@/components/QRScanner"
+import { Header } from "@/components/Header"
+import { Footer } from "@/components/Footer";
 
 export default function Home() {
   return (
@@ -10,18 +13,18 @@ export default function Home() {
       <meta name="description" content="Smart Shop" />
       <meta name="viewport" content="initial-scale=1.0, width=device-width" />
       <link rel="icon" href="/favicon.ico" />
-        <div className="container flex h-16 items-center justify-between">
-          <span className="text-xl font-bold">Smart Shop</span>
-          <div className="flex items-center gap-4">
-            <SearchProducts />
-            <CartSheet />
-          </div>
-        </div>
+        <Header />
       </header>
+      <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Scan Product QR Code</h1>
+      <QRScanner variant="homepage"/>
+      </div>
       <main className="container py-6">
         <ProductGrid />
       </main>
+      <footer><Footer /></footer>
+      
     </div>
   )
-}
+};
 
