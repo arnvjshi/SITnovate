@@ -52,7 +52,7 @@ export const Footer = () => {
                 Smart and efficient Store with a wide range of products to meet all your needs. Our mission is to provide quality and convenience at competitive prices.
               </p>
               <div className="flex space-x-4">
-                <a href="#" className="hover:text-blue-500 transition-colors">
+                <a href="https://github.com/arnvjshi/SITnovate/" className="hover:text-blue-500 transition-colors">
                   <Github className="h-5 w-5" />
                 </a>
                 <a href="#" className="hover:text-blue-500 transition-colors">
@@ -61,7 +61,7 @@ export const Footer = () => {
                 <a href="#" className="hover:text-blue-500 transition-colors">
                   <Twitter className="h-5 w-5" />
                 </a>
-              </div>n  
+              </div>  
             </div>
 
             {/* Quick Links */}

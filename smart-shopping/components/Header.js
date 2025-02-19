@@ -9,11 +9,10 @@ import { QRScanner } from "@/components/QRScanner"
 export function Header() {
     return (
 <div className="container flex h-16 items-center justify-between">
-          <span className="text-xl font-bold">Smart Shop</span>
+          <span className="text-xl font-bold">  <a href="#">Smart Shop</a></span>
           <div className="flex items-center gap-4">
             <SearchProducts />
             <CartSheet />
-            <QRScanner variant="navbar" />
           </div>
         </div>
     )
