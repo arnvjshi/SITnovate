@@ -15,6 +15,7 @@ export function QRScanner() {
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [cart, setCart] = useState([]);
 
   function scanQRCode() {
     if (!webcamRef.current || !webcamRef.current.video || webcamRef.current.video.readyState !== 4) {
@@ -48,18 +49,13 @@ export function QRScanner() {
 
   async function fetchProductDetails(productId) {
     try {
-      const res = await fetch(`/api/products`);
+      const res = await fetch(`/api/products/${productId}`);
       if (!res.ok) {
         throw new Error(`HTTP error! Status: ${res.status}`);
       }
-      const data = await res.json();
-      const product = data.find((item) => item.id === productId);
-      if (product) {
-        setScannedProduct(product);
-        setIsDetailsOpen(true);
-      } else {
-        console.error("Product not found");
-      }
+      const product = await res.json();
+      setScannedProduct(product);
+      setIsDetailsOpen(true);
     } catch (error) {
       console.error("Failed to fetch product details", error);
     }
@@ -84,7 +80,7 @@ export function QRScanner() {
 
   function addToCart() {
     if (scannedProduct) {
-      window.dispatchEvent(new CustomEvent("add-to-cart", { detail: scannedProduct }));
+      setCart([...cart, scannedProduct]);
       toast({ title: "Added to cart", description: `${scannedProduct.item_name} has been added.` });
     }
   }
@@ -100,7 +96,8 @@ export function QRScanner() {
               <Button className="absolute top-2 right-2" onClick={toggleScanner}>✖</Button>
               <h1 className="text-xl font-bold mb-4">QR Code Scanner</h1>
               <Webcam ref={webcamRef} audio={false} className="rounded-lg shadow-md border border-gray-300" videoConstraints={{ facingMode: "environment" }} />
-              <h2 className="text-md font-bold mt-4">QR Data: {qrData}</h2>
+              <h2 className="text-md font-bold mt-4">Scanned QR Data:</h2>
+              <p className="text-sm text-gray-600 break-words text-center p-2 bg-gray-200 rounded">{qrData}</p>
               <h1 className="text-xl font-bold mt-4">{scannedProduct?.item_name || "Awaiting Scan..."}</h1>
               <p className="text-sm text-gray-600">Price: ${scannedProduct?.price?.$numberDouble || "0.00"}</p>
               <p className="text-sm text-gray-600">Expiry Date: {scannedProduct?.expiry_date || "N/A"}</p>
