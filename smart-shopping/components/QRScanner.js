@@ -10,8 +10,18 @@ import { useToast } from "@/components/ui/use-toast";
 export function QRScanner() {
   const webcamRef = useRef(null);
   const { toast } = useToast();
-  const [scannedProduct, setScannedProduct] = useState(null);
+  const [scannedProduct, setScannedProduct] = useState({
+    item_name: "",
+    price: { $numberDouble: "0.00" },
+    expiry_date: "",
+    quantity: { $numberInt: "0" },
+    description: "",
+    category: "",
+    rating: ""
+  });
   const [isScannerOpen, setIsScannerOpen] = useState(false);
+  const [isPopupOpen, setIsPopupOpen] = useState(true);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   function scanQRCode() {
     if (!webcamRef.current || !webcamRef.current.video || webcamRef.current.video.readyState !== 4) {
@@ -60,6 +70,19 @@ export function QRScanner() {
     }
   }
 
+  function closeScanner() {
+    setIsScannerOpen(false);
+    setIsDetailsOpen(false);
+  }
+
+  function openDetails() {
+    setIsDetailsOpen(true);
+  }
+
+  function closeDetails() {
+    setIsDetailsOpen(false);
+  }
+
   useEffect(() => {
     if (isScannerOpen) {
       const interval = setInterval(scanQRCode, 500);
@@ -68,7 +91,7 @@ export function QRScanner() {
   }, [isScannerOpen]);
 
   function addToCart() {
-    if (scannedProduct) {
+    if (scannedProduct.item_name) {
       window.dispatchEvent(new CustomEvent("add-to-cart", { detail: scannedProduct }));
       toast({ title: "Added to cart", description: `${scannedProduct.item_name} has been added.` });
     }
@@ -76,30 +99,33 @@ export function QRScanner() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
-      <Button onClick={() => setIsScannerOpen(true)}>Scan QR Code</Button>
-
       <AnimatePresence>
-        {isScannerOpen && (
+        {isPopupOpen && (
           <motion.div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
             <motion.div className="bg-white p-6 rounded-lg shadow-lg w-80 md:w-96 relative flex flex-col items-center">
-              <Button className="absolute top-2 right-2" onClick={() => setIsScannerOpen(false)}>✖</Button>
+              <Button className="absolute top-2 right-2" onClick={closeScanner}>✖</Button>
               <h1 className="text-xl font-bold mb-4">QR Code Scanner</h1>
               <Webcam ref={webcamRef} audio={false} className="rounded-lg shadow-md border border-gray-300" videoConstraints={{ facingMode: "environment" }} />
+              <h1 className="text-xl font-bold mt-4">{scannedProduct.item_name || "Awaiting Scan..."}</h1>
+              <p className="text-sm text-gray-600">Price: ${scannedProduct.price.$numberDouble}</p>
+              <p className="text-sm text-gray-600">Expiry Date: {scannedProduct.expiry_date}</p>
+              <p className="text-sm text-gray-600">Quantity Available: {scannedProduct.quantity.$numberInt}</p>
+              <Button className="mt-4" onClick={addToCart} disabled={!scannedProduct.item_name}>Add to Cart</Button>
+              <Button className="mt-2" onClick={openDetails} disabled={!scannedProduct.item_name}>View Details</Button>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
       <AnimatePresence>
-        {scannedProduct && (
+        {isDetailsOpen && scannedProduct.item_name && (
           <motion.div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
             <motion.div className="bg-white p-6 rounded-lg shadow-lg w-80 md:w-96 relative flex flex-col items-center">
-              <Button className="absolute top-2 right-2" onClick={() => setScannedProduct(null)}>✖</Button>
-              <h1 className="text-xl font-bold mb-4">{scannedProduct.item_name}</h1>
-              <p className="text-sm text-gray-600">Price: ${scannedProduct.price.$numberDouble}</p>
-              <p className="text-sm text-gray-600">Expiry Date: {scannedProduct.expiry_date}</p>
-              <p className="text-sm text-gray-600">Quantity Available: {scannedProduct.quantity.$numberInt}</p>
-              <Button className="mt-4" onClick={addToCart}>Add to Cart</Button>
+              <Button className="absolute top-2 right-2" onClick={closeDetails}>✖</Button>
+              <h1 className="text-xl font-bold mb-4">{scannedProduct.item_name} - Details</h1>
+              <p className="text-sm text-gray-600">Description: {scannedProduct.description}</p>
+              <p className="text-sm text-gray-600">Category: {scannedProduct.category}</p>
+              <p className="text-sm text-gray-600">Rating: {scannedProduct.rating}</p>
             </motion.div>
           </motion.div>
         )}
