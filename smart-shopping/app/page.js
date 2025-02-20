@@ -193,6 +193,7 @@ export default function Home() {
       >
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
+          <link rel="icon" href="/favicon.png" />
             <Header />
             
             <div className="flex items-center gap-3">
