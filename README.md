@@ -27,45 +27,14 @@ A smart shopping system that detects and processes items in real-time, enabling 
 - **AWS S3** – Storing product images and invoices.
 
 ### **Other Integrations**
-- **Stripe/Razorpay** – Payment processing.
-- **Firebase/Auth.js** – User authentication.
-- **WebRTC** – QR code scanner implementation for mobile.
+- **Stripe** – Payment processing.
+- **Auth.js** – User authentication.
 
-## 📂 Project Structure
-```
-/smart-shopping
-├── /components
-│   ├── Header.js
-│   ├── Footer.js
-│   ├── ProductCard.js
-│   ├── QRScanner.js
-│   ├── Cart.js
-│   ├── Checkout.js
-│   ├── AdminPanel.js
-│
-├── /pages
-│   ├── index.js  → Home page
-│   ├── product/[id].js  → Product details
-│   ├── cart.js  → Shopping cart & checkout
-│   ├── admin.js  → Admin dashboard
-│   ├── api/qrScan.js  → API for QR scanning
-│
-├── /utils
-│   ├── api.js  → API calls to AWS Lambda
-│   ├── helpers.js  → Utility functions
-│
-├── /public
-│   ├── /images
-│
-├── .env.local  → API keys & secrets
-├── next.config.js
-├── package.json
-```
 
 ## ⚡ Setup & Installation
 ### **1. Clone the Repository**
 ```bash
-git clone https://github.com/yourusername/smart-shopping.git
+git clone https://github.com/arnvjshi/SITnovate.git
 cd smart-shopping
 ```
 
