@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
-import Webcam from 'react-webcam';
-import jsQR from 'jsqr';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useRef, useState } from "react";
+import Webcam from "react-webcam";
+import jsQR from "jsqr";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 
 export function QRScanner() {
   const webcamRef = useRef(null);
-  const [scannedData, setScannedData] = useState(null);
+  const { toast } = useToast();
+  const [scannedProduct, setScannedProduct] = useState(null);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   function scanQRCode() {
@@ -16,19 +19,44 @@ export function QRScanner() {
     }
 
     const video = webcamRef.current.video;
-    const canvas = document.createElement('canvas');
+    const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-    const context = canvas.getContext('2d');
+    const context = canvas.getContext("2d");
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
     const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
     const code = jsQR(imageData.data, imageData.width, imageData.height, {
-      inversionAttempts: 'dontInvert'
+      inversionAttempts: "dontInvert",
     });
 
     if (code) {
-      setScannedData(code.data);
+      try {
+        const scannedData = JSON.parse(code.data);
+        if (scannedData.id) {
+          fetchProductDetails(scannedData.id);
+        }
+      } catch (error) {
+        console.error("Invalid QR Code format", error);
+      }
+    }
+  }
+
+  async function fetchProductDetails(productId) {
+    try {
+      const res = await fetch(`/api/products`);
+      if (!res.ok) {
+        throw new Error(`HTTP error! Status: ${res.status}`);
+      }
+      const data = await res.json();
+      const product = data.find((item) => item.id === productId);
+      if (product) {
+        setScannedProduct(product);
+      } else {
+        console.error("Product not found");
+      }
+    } catch (error) {
+      console.error("Failed to fetch product details", error);
     }
   }
 
@@ -39,75 +67,39 @@ export function QRScanner() {
     }
   }, [isScannerOpen]);
 
-  function isValidUrl(string) {
-    try {
-      new URL(string);
-      return true;
-    } catch (_) {
-      return false;
+  function addToCart() {
+    if (scannedProduct) {
+      window.dispatchEvent(new CustomEvent("add-to-cart", { detail: scannedProduct }));
+      toast({ title: "Added to cart", description: `${scannedProduct.item_name} has been added.` });
     }
-  }
-
-  useEffect(() => {
-    if (scannedData && isValidUrl(scannedData)) {
-      window.location.href = scannedData;
-    }
-  }, [scannedData]);
-
-  function toggleScanner() {
-    setIsScannerOpen(!isScannerOpen);
   }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-gray-100">
-      <motion.button
-        className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition transform hover:scale-105"
-        onClick={toggleScanner}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-      >
-        Scan QR Code
-      </motion.button>
+      <Button onClick={() => setIsScannerOpen(true)}>Scan QR Code</Button>
 
       <AnimatePresence>
         {isScannerOpen && (
-          <motion.div 
-            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div 
-              className="bg-white p-6 rounded-lg shadow-lg w-80 md:w-96 relative flex flex-col items-center m-auto"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-            >
-              <motion.button 
-                className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
-                onClick={toggleScanner}
-                whileHover={{ scale: 1.2 }}
-              >
-                ✖
-              </motion.button>
-              <h1 className="text-xl font-bold mb-4 text-gray-800">QR Code Scanner</h1>
-              <div className="relative w-full flex justify-center">
-                <Webcam
-                  ref={webcamRef}
-                  audio={false}
-                  screenshotFormat="image/jpeg"
-                  className="rounded-lg shadow-md border border-gray-300 z-50"
-                />
-              </div>
-              <motion.div 
-                className="mt-4 p-2 w-full bg-gray-200 rounded-lg text-center text-gray-800"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-              >
-                <h2 className="text-lg font-semibold">Scanned Data:</h2>
-                <p className="text-sm break-all">{scannedData || 'Scanning...'}</p>
-              </motion.div>
+          <motion.div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+            <motion.div className="bg-white p-6 rounded-lg shadow-lg w-80 md:w-96 relative flex flex-col items-center">
+              <Button className="absolute top-2 right-2" onClick={() => setIsScannerOpen(false)}>✖</Button>
+              <h1 className="text-xl font-bold mb-4">QR Code Scanner</h1>
+              <Webcam ref={webcamRef} audio={false} className="rounded-lg shadow-md border border-gray-300" videoConstraints={{ facingMode: "environment" }} />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {scannedProduct && (
+          <motion.div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+            <motion.div className="bg-white p-6 rounded-lg shadow-lg w-80 md:w-96 relative flex flex-col items-center">
+              <Button className="absolute top-2 right-2" onClick={() => setScannedProduct(null)}>✖</Button>
+              <h1 className="text-xl font-bold mb-4">{scannedProduct.item_name}</h1>
+              <p className="text-sm text-gray-600">Price: ${scannedProduct.price.$numberDouble}</p>
+              <p className="text-sm text-gray-600">Expiry Date: {scannedProduct.expiry_date}</p>
+              <p className="text-sm text-gray-600">Quantity Available: {scannedProduct.quantity.$numberInt}</p>
+              <Button className="mt-4" onClick={addToCart}>Add to Cart</Button>
             </motion.div>
           </motion.div>
         )}
